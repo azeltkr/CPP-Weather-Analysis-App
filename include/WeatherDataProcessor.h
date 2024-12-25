@@ -9,14 +9,18 @@
 std::vector<Candlestick> computeCandlestickData(const std::map<std::string, std::vector<double>>& data);
 
 // function to filter data by date range
-std::map<std::string, std::vector<double>> filterByDateRange(
+std::map<std::string, std::vector<double>> filterByYearRange(
     const std::map<std::string, std::vector<double>>& data,
-    const std::string& startDate, const std::string& endDate);
+    int startYear, int endYear);
+
 
 // function to filter data by temperature range
 std::map<std::string, std::vector<double>> filterByTemperatureRange(
     const std::map<std::string, std::vector<double>>& data,
     int minTemp, int maxTemp);
+
+// function to plot candlesticks for a range
+void displayPlotForRange(const std::vector<Candlestick>& candlesticks, int startYear, int endYear, int minTemp, int maxTemp);
 
 void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp, int maxTemp);
 

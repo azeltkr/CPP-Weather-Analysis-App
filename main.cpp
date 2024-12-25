@@ -19,35 +19,54 @@ std::map<std::string, std::string> countryMap = {
     {"SK", "Slovakia"}
 };
 
-// function to display candlestick plot for a specific range
-// [ASSISTED IMPLEMENTATION]
-void displayPlotForRange(const std::vector<Candlestick>& candlesticks, int startYear, int endYear, int minTemp, int maxTemp) {
-    std::vector<Candlestick> filteredCandlesticks;
+// function to plot candlestick data as a text-based chart
+void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp, int maxTemp) {
+    const int plotWidth = candlesticks.size();
+    const int plotHeight = maxTemp - minTemp + 1;
+    const int columnSpacing = 6; // spacing between candlesticks
 
-    // dynamically filter candlesticks by the specified year range
-    for (const auto& candle : candlesticks) {
-        int year = std::stoi(candle.date.substr(0, 4)); // extract year from the date
-        if (year >= startYear && year <= endYear) {
-            filteredCandlesticks.push_back(candle);
+    // initialize a grid for the plot
+    std::vector<std::string> grid(plotHeight, std::string(plotWidth * columnSpacing, ' '));
+
+    for (size_t i = 0; i < candlesticks.size(); ++i) {
+        const Candlestick& candle = candlesticks[i];
+
+        // map temperature values to grid positions
+        int highPos = std::max(0, maxTemp - static_cast<int>(std::round(candle.high)));
+        int lowPos = std::max(0, maxTemp - static_cast<int>(std::round(candle.low)));
+        int openPos = std::max(0, maxTemp - static_cast<int>(std::round(candle.open)));
+        int closePos = std::max(0, maxTemp - static_cast<int>(std::round(candle.close)));
+        int column = i * columnSpacing + columnSpacing / 2;
+
+        // draw the vertical stalk (high to low)
+        for (int row = highPos; row <= lowPos; ++row) {
+            grid[row][column] = '|';
+        }
+
+        // draw the horizontal box (open to close)
+        for (int row = std::min(openPos, closePos); row <= std::max(openPos, closePos); ++row) {
+            grid[row][column - 1] = '+';
+            grid[row][column] = '+';
+            grid[row][column + 1] = '+';
         }
     }
 
-    if (filteredCandlesticks.empty()) {
-        // handle case where no data is available for the range
-        std::cout << "No data available for the range " << startYear << "-" << endYear << ".\n";
-        return;
+    // render the plot grid with y-axis labels
+    for (int row = 0; row < plotHeight; ++row) {
+        std::cout << std::string(3 - std::to_string(maxTemp - row).length(), ' ')
+                  << maxTemp - row << " | " << grid[row] << "\n";
     }
 
-    // dynamically determine the actual range for filtered data
-    int actualStartYear = std::stoi(filteredCandlesticks.front().date.substr(0, 4));
-    int actualEndYear = std::stoi(filteredCandlesticks.back().date.substr(0, 4));
-
-    std::cout << "\nCandlestick Plot for " << actualStartYear << "-" << actualEndYear << ":\n";
-    plotCandlesticks(filteredCandlesticks, minTemp, maxTemp);
+    // render the x-axis labels
+    std::cout << "      ";
+    for (size_t i = 0; i < candlesticks.size(); ++i) {
+        int labelPos = i * columnSpacing + columnSpacing / 2 - 1;
+        std::cout << std::string(labelPos - (6 * i), ' ') << (1980 + i);
+    }
+    std::cout << "\n";
 }
 
 // main function
-// [UPDATED FOR FILTER AND PROMPT FUNCTIONALITY]
 int main() {
     try {
         // step 1: display the list of available countries
@@ -73,37 +92,26 @@ int main() {
         // step 3: parse the weather data for the selected country
         auto data = parseWeatherData("data/weather_data.csv", countryCode);
 
-        bool isFiltered = false; // flag to track if data was filtered
+        // step 4: apply year and temperature range filters
+        int startYear, endYear;
+        std::cout << "Enter start year (1980-2019): ";
+        std::cin >> startYear;
+        std::cout << "Enter end year (1980-2019): ";
+        std::cin >> endYear;
 
-        // step 4: ask the user if they want to apply filters
-        char applyFilters;
-        std::cout << "\nWould you like to apply additional filters? [Y/N]: ";
-        std::cin >> applyFilters;
+        data = filterByYearRange(data, startYear, endYear);
 
-        // step 5: apply filters if the user chooses to
-        if (applyFilters == 'Y' || applyFilters == 'y') {
-            int minTemp, maxTemp;
-            std::cout << "Enter minimum temperature: ";
-            std::cin >> minTemp;
-            std::cout << "Enter maximum temperature: ";
-            std::cin >> maxTemp;
+        int minTemp, maxTemp;
+        std::cout << "Enter minimum temperature: ";
+        std::cin >> minTemp;
+        std::cout << "Enter maximum temperature: ";
+        std::cin >> maxTemp;
+        data = filterByTemperatureRange(data, minTemp, maxTemp);
 
-            std::string startDate, endDate;
-            std::cout << "Enter start date (YYYY-MM-DD): ";
-            std::cin >> startDate;
-            std::cout << "Enter end date (YYYY-MM-DD): ";
-            std::cin >> endDate;
-
-            // apply date and temperature range filters
-            data = filterByDateRange(data, startDate, endDate); // call filterByDateRange
-            data = filterByTemperatureRange(data, minTemp, maxTemp); // call filterByTemperatureRange
-            isFiltered = true; // mark data as filtered
-        }
-
-        // step 6: compute candlestick data
+        // step 5: compute candlestick data
         auto candlesticks = computeCandlestickData(data);
 
-        // display yearly candlestick data table
+        // step 6: display the yearly candlestick data in a table
         std::cout << "\nYearly Candlestick Data for " << countryMap[countryCode] << ":\n";
         std::cout << "Date\t\tOpen\tHigh\tLow\tClose\n";
         for (const auto& candle : candlesticks) {
@@ -115,35 +123,15 @@ int main() {
                       << candle.close << "\n";
         }
 
-        // step 7: prompt user based on filter status
-        if (isFiltered) {
-            // if data was filtered
-            char viewPlot;
-            std::cout << "\nWould you like to view the candlestick plot of the filtered data? [Y/N]: ";
-            std::cin >> viewPlot;
+        // step 7: generate candlestick plot for filtered data
+        char viewPlot;
+        std::cout << "\nWould you like to view the candlestick plot of the filtered data? [Y/N]: ";
+        std::cin >> viewPlot;
 
-            if (viewPlot == 'Y' || viewPlot == 'y') {
-                // plot the candlestick chart for the entire filtered dataset
-                int minTemp = -10, maxTemp = 40; // default temperature range for the plot
-                std::cout << "\nGenerating candlestick plot for the filtered data:\n";
-                displayPlotForRange(candlesticks, 1980, 2019, minTemp, maxTemp);
-            } else {
-                std::cout << "Candlestick plot generation skipped.\n";
-            }
+        if (viewPlot == 'Y' || viewPlot == 'y') {
+            displayPlotForRange(candlesticks, startYear, endYear, minTemp, maxTemp);
         } else {
-            // if data was not filtered
-            int startYear, endYear;
-            std::cout << "\nEnter the start year that you would like to view the candlestick plot (e.g., 1980): ";
-            std::cin >> startYear;
-            endYear = startYear + 9; // cap range to 10 years
-
-            if (startYear < 1980 || endYear > 2019) {
-                std::cerr << "Error: Year range must be within 1980-2019.\n";
-                return 1;
-            }
-
-            // display the candlestick plot for the specified range
-            displayPlotForRange(candlesticks, startYear, endYear, -10, 40);
+            std::cout << "Candlestick plot generation skipped.\n";
         }
 
     } catch (const std::exception& e) {
@@ -154,6 +142,10 @@ int main() {
 
     return 0;
 }
+
+
+
+
 
 
 
