@@ -5,6 +5,7 @@
 #include <map>
 #include <algorithm>
 #include <numeric>
+#include <numeric> // for std::accumulate
 
 // function to compute candlestick data from temperature data
 // [done without assistance]
@@ -66,6 +67,7 @@ std::map<std::string, std::vector<double>> filterByTemperatureRange(
     return filteredData;
 }
 
+
 void displayPlotForRange(const std::vector<Candlestick>& candlesticks, int startYear, int endYear, int minTemp, int maxTemp) {
     std::vector<Candlestick> filteredCandlesticks;
 
@@ -85,4 +87,38 @@ void displayPlotForRange(const std::vector<Candlestick>& candlesticks, int start
     // display the candlestick plot
     std::cout << "\nCandlestick Plot for " << startYear << "-" << endYear << ":\n";
     plotCandlesticks(filteredCandlesticks, minTemp, maxTemp);
+}
+
+// function to calculate linear regression coefficients (slope and intercept)
+// slope = (n * Σ(xy) - Σx * Σy) / (n * Σ(x^2) - (Σx)^2)
+// intercept = (Σy - slope * Σx) / n
+std::pair<double, double> calculateLinearRegression(const std::vector<int>& years, const std::vector<double>& values) {
+    int n = years.size();
+    if (n == 0) throw std::runtime_error("Insufficient data for prediction");
+
+    double sumX = std::accumulate(years.begin(), years.end(), 0.0);
+    double sumY = std::accumulate(values.begin(), values.end(), 0.0);
+    double sumXY = 0.0, sumX2 = 0.0;
+
+    for (size_t i = 0; i < years.size(); ++i) {
+        sumXY += years[i] * values[i];
+        sumX2 += years[i] * years[i];
+    }
+
+    double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    double intercept = (sumY - slope * sumX) / n;
+
+    return {slope, intercept};
+}
+
+// function to predict future temperatures based on linear regression
+std::vector<std::pair<int, double>> predictTemperatures(int startYear, int endYear, double slope, double intercept) {
+    std::vector<std::pair<int, double>> predictions;
+
+    for (int year = startYear; year <= endYear; ++year) {
+        double predictedValue = slope * year + intercept;
+        predictions.emplace_back(year, predictedValue);
+    }
+
+    return predictions;
 }

@@ -20,6 +20,7 @@ std::map<std::string, std::string> countryMap = {
 };
 
 // function to plot candlestick data as a text-based chart
+// [DONE WITH SOME ASSISTANCE]
 void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp, int maxTemp) {
     const int plotWidth = candlesticks.size();
     const int plotHeight = maxTemp - minTemp + 1;
@@ -67,6 +68,7 @@ void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp,
 }
 
 // main function
+// [DONE WITHOUT ASSISTANCE]
 int main() {
     try {
         // step 1: display the list of available countries
@@ -133,6 +135,42 @@ int main() {
         } else {
             std::cout << "Candlestick plot generation skipped.\n";
         }
+
+        // step 8: predict future temperatures
+        char predictTemp;
+        std::cout << "\nWould you like to predict future temperatures based on historical data? [Y/N]: ";
+        std::cin >> predictTemp;
+
+        if (predictTemp == 'Y' || predictTemp == 'y') {
+            int predictStartYear, predictEndYear;
+            std::cout << "Enter the start year for prediction (e.g., 2025): ";
+            std::cin >> predictStartYear;
+            std::cout << "Enter the end year for prediction (e.g., 2030): ";
+            std::cin >> predictEndYear;
+
+            // collect historical years and averages
+            std::vector<int> years;
+            std::vector<double> averages;
+            for (const auto& candle : candlesticks) {
+                int year = std::stoi(candle.date.substr(0, 4));
+                years.push_back(year);
+                averages.push_back(candle.close); // use 'close' temperature as yearly average
+            }
+
+            // calculate slope and intercept
+            auto [slope, intercept] = calculateLinearRegression(years, averages);
+
+            // predict temperatures
+            auto predictions = predictTemperatures(predictStartYear, predictEndYear, slope, intercept);
+
+            // display predictions
+            std::cout << "\nPredicted Temperatures:\n";
+            std::cout << "Year\tPredicted Average Temperature\n";
+            for (const auto& [year, predictedValue] : predictions) {
+                std::cout << year << "\t" << std::fixed << std::setprecision(2) << predictedValue << "\n";
+            }
+        }
+
 
     } catch (const std::exception& e) {
         // handle exceptions

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 #include "Candlestick.h"
 
 // function to compute candlestick data from grouped temperature data.
@@ -23,5 +24,11 @@ std::map<std::string, std::vector<double>> filterByTemperatureRange(
 void displayPlotForRange(const std::vector<Candlestick>& candlesticks, int startYear, int endYear, int minTemp, int maxTemp);
 
 void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp, int maxTemp);
+
+// function to calculate linear regression coefficients
+std::pair<double, double> calculateLinearRegression(const std::vector<int>& years, const std::vector<double>& values);
+
+// function to predict temperatures based on linear regression
+std::vector<std::pair<int, double>> predictTemperatures(int startYear, int endYear, double slope, double intercept);
 
 #endif
