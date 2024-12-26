@@ -59,10 +59,11 @@ void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp,
     }
 
     // render the x-axis labels
+    int startYear = std::stoi(candlesticks.front().date.substr(0, 4)); // extract the first year
     std::cout << "      ";
     for (size_t i = 0; i < candlesticks.size(); ++i) {
         int labelPos = i * columnSpacing + columnSpacing / 2 - 1;
-        std::cout << std::string(labelPos - (6 * i), ' ') << (1980 + i);
+        std::cout << std::string(labelPos - (6 * i), ' ') << (startYear + i);
     }
     std::cout << "\n";
 }
