@@ -19,55 +19,6 @@ std::map<std::string, std::string> countryMap = {
     {"SK", "Slovakia"}
 };
 
-// function to plot candlestick data as a text-based chart
-// [DONE WITH SOME ASSISTANCE]
-void plotCandlesticks(const std::vector<Candlestick>& candlesticks, int minTemp, int maxTemp) {
-    const int plotWidth = candlesticks.size();
-    const int plotHeight = maxTemp - minTemp + 1;
-    const int columnSpacing = 6; // spacing between candlesticks
-
-    // initialize a grid for the plot
-    std::vector<std::string> grid(plotHeight, std::string(plotWidth * columnSpacing, ' '));
-
-    for (size_t i = 0; i < candlesticks.size(); ++i) {
-        const Candlestick& candle = candlesticks[i];
-
-        // map temperature values to grid positions
-        int highPos = std::max(0, maxTemp - static_cast<int>(std::round(candle.high)));
-        int lowPos = std::max(0, maxTemp - static_cast<int>(std::round(candle.low)));
-        int openPos = std::max(0, maxTemp - static_cast<int>(std::round(candle.open)));
-        int closePos = std::max(0, maxTemp - static_cast<int>(std::round(candle.close)));
-        int column = i * columnSpacing + columnSpacing / 2;
-
-        // draw the vertical stalk (high to low)
-        for (int row = highPos; row <= lowPos; ++row) {
-            grid[row][column] = '|';
-        }
-
-        // draw the horizontal box (open to close)
-        for (int row = std::min(openPos, closePos); row <= std::max(openPos, closePos); ++row) {
-            grid[row][column - 1] = '+';
-            grid[row][column] = '+';
-            grid[row][column + 1] = '+';
-        }
-    }
-
-    // render the plot grid with y-axis labels
-    for (int row = 0; row < plotHeight; ++row) {
-        std::cout << std::string(3 - std::to_string(maxTemp - row).length(), ' ')
-                  << maxTemp - row << " | " << grid[row] << "\n";
-    }
-
-    // render the x-axis labels
-    int startYear = std::stoi(candlesticks.front().date.substr(0, 4)); // extract the first year
-    std::cout << "      ";
-    for (size_t i = 0; i < candlesticks.size(); ++i) {
-        int labelPos = i * columnSpacing + columnSpacing / 2 - 1;
-        std::cout << std::string(labelPos - (6 * i), ' ') << (startYear + i);
-    }
-    std::cout << "\n";
-}
-
 // main function
 // [DONE WITHOUT ASSISTANCE]
 int main() {

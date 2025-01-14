@@ -7,8 +7,9 @@
 #include <vector>
 
 // parses weather data from the dataset.
+// [DONE WITH SOME ASSISTANCE]
 std::map<std::string, std::vector<double>> parseWeatherData(const std::string& filename, const std::string& countryCode) {
-    std::ifstream file(filename); // opens the file for reading
+    std::ifstream file(filename); 
     std::map<std::string, std::vector<double>> data; // map to store temperature data grouped by year
     std::string line; // variable to hold each line from the file
 

@@ -6,6 +6,7 @@
 #include <string>
 #include "Candlestick.h"
 
+
 // function to compute candlestick data from grouped temperature data.
 std::vector<Candlestick> computeCandlestickData(const std::map<std::string, std::vector<double>>& data);
 
